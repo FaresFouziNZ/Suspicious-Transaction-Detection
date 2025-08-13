@@ -1,0 +1,8 @@
+services:
+  hermes:
+    build:
+      context: ./hermes
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=development
