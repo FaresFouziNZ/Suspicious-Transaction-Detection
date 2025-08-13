@@ -20,10 +20,11 @@ def enrich(txn_id: str, merchant: str, amount: float, currency: str):
     """
 
     categorization_table = {    # Mock categorization table
-        "Electronics": ["electronics", "gadgets", "devices"],
-        "Groceries": ["groceries", "food", "supermarket"],
-        "Clothing": ["clothing", "apparel", "fashion"],
-        "E-commerce": ["Amazon", "online shopping", "digital goods"]
+        "Electronics": ["Extra", "Jarir", "Sony"],
+        "Groceries": ["Panda", "AlOthaim", "Tamimi"],
+        "Clothing": ["Zara", "H&M", "Nike"],
+        "E-commerce": ["Amazon", "SHEIN", "AliExpress"],
+        "Jewelry": ["goldenPalace", "AlFardan", "Tiffany"]
     }
     
     currency = currency.upper()
@@ -32,6 +33,7 @@ def enrich(txn_id: str, merchant: str, amount: float, currency: str):
         "USD": 3.75,
         "EUR": 4.35,
         "GBP": 5.0,
+        "SAR": 1.0,
     }
     
     data = {
