@@ -35,7 +35,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql 
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  etl-pipeline:
+    build: ./etl-pipeline
+    depends_on:
+      - minio
+      - hermes
+      - postgres
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_BUCKET: transactions
+      MINIO_ACCESSKEY: minioadmin
+      MINIO_SECRETKEY: minioadmin
+      HERMES_URL: http://localhost:8000
+      POSTGRES_URL: jdbc:postgresql://localhost:5432/etl_db
+      POSTGRES_DATABASE: etl_db
+      POSTGRES_USER: etl_user
+      POSTGRES_PASSWORD: etl_password
 
 volumes:
   postgres_data:
