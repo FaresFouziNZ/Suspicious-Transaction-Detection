@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 app = FastAPI(title="Hermes API", version="1.0")
 
 @app.get("/enrich")
-def enrich(txn_id: str, merchant: str, amount: float, currency: str):
+def enrich(txn_id: str, amount: float, currency: str, merchant: str = "Unknown"):
     """
     Enrich transaction data with additional information.
 
@@ -45,7 +45,7 @@ def enrich(txn_id: str, merchant: str, amount: float, currency: str):
     return {"status": "success", "data": data}
 
 @app.get("/score")
-def score(txn_id: str, merchant: str, amount_sar: float, currency: str, category: str, timestamp: str):
+def score(txn_id: str, amount_sar: float, category: str, timestamp: str):
     """
     Calculate a suspicion score for a transaction based on various factors.
     
