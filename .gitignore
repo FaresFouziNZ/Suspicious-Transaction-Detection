@@ -1,2 +1,4 @@
 /minio/data
 /postgres/data
+.vscode
+.metals
