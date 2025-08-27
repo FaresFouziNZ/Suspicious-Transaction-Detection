@@ -1,6 +1,6 @@
 // build.sbt
 
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.13"
 
 lazy val root = (project in file("."))
   .settings(
@@ -17,10 +17,13 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-logging-slf4j" % "2.1.14",
       "io.minio" % "minio" % "8.5.7",
       "org.postgresql" % "postgresql" % "42.6.0",
-      "com.softwaremill.sttp.client3" %% "core" % "3.9.0",
-      "io.circe" %% "circe-core"    % "0.14.5",
+      "com.softwaremill.sttp.client3" %% "core" % "3.9.8",
+      "com.softwaremill.sttp.client3" %% "zio"  % "3.9.8",
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % "3.9.8",
+      "io.circe" %% "circe-core" % "0.14.5",
       "io.circe" %% "circe-generic" % "0.14.5",
-      "io.circe" %% "circe-parser"  % "0.14.5"
+      "io.circe" %% "circe-parser" % "0.14.5",
+      "dev.zio" %% "zio-json" % "0.6.2"
     ),
 
     Compile / mainClass := Some("etl.Main"),
