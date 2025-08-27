@@ -48,7 +48,7 @@ services:
       MINIO_BUCKET: transactions
       MINIO_ACCESSKEY: minioadmin
       MINIO_SECRETKEY: minioadmin
-      HERMES_URL: http://localhost:8000
+      HERMES_URL: http://hermes:8000
       POSTGRES_URL: jdbc:postgresql://localhost:5432/etl_db
       POSTGRES_DATABASE: etl_db
       POSTGRES_USER: etl_user
