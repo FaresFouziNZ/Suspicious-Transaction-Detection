@@ -8,15 +8,6 @@ import io.circe.parser._
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, HCursor}
 
-case class Transaction(
-  txn_id: String,
-  user_id: String,
-  amount: Double,
-  timestamp: String,
-  currency: String,
-  merchant: String,
-)
-
 trait MinioService {
   def listFiles(bucket: String): Task[List[String]]
   def readObject(path: String): Task[String]
