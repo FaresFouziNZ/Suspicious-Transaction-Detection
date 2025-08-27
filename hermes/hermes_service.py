@@ -82,10 +82,13 @@ def calculate_suspicion_score(amount_sar: float, category: str, transaction_hour
         score += 10
 
     # Category factor
+    very_risky_categories = ["unknown"]
     risky_categories = ["Electronics", "Jewelry"]
     medium_risk_categories = ["E-commerce"]
-
-    if category in risky_categories:
+    
+    if category in very_risky_categories:
+        score += 40
+    elif category in risky_categories:
         score += 25
     elif category in medium_risk_categories:
         score += 15
