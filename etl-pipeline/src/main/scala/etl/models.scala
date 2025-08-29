@@ -1,5 +1,8 @@
 package etl
 
+import java.time.Instant
+
+
 // ===== Core Domain Models =====
 case class Transaction(
   txn_id: String,
@@ -20,6 +23,20 @@ case class EnrichedTransaction(
   amount_sar: Double,
   category: String,
   suspicion_score: Int
+)
+
+case class SuspiciousTransaction(
+  txnId: String,
+  userId: String,
+  amountSar: BigDecimal,
+  merchant: String,
+  category: String,
+  timestampLocal: Instant,
+  suspicionScore: Double,
+  checked: Boolean,
+  checkedBy: Option[String] = None,
+  checkedAt: Option[java.time.LocalDateTime] = None,
+  checkNotes: Option[String] = None
 )
 
 // ===== Hermes Service Models =====
