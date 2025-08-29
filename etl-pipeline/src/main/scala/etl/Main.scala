@@ -5,17 +5,18 @@ import zio.logging.backend.SLF4J
 
 object Main extends ZIOAppDefault {
 
-  val program: ZIO[AppConfig & MinioService & HermesService, Throwable, Unit] = for {
+  val program: ZIO[AppConfig & MinioService & HermesService & SuspiciousTransactionRepository, Throwable, Unit] = for {
     cfg <- ZIO.service[AppConfig]
     minio <- ZIO.service[MinioService]
-    _     <- ZIO.logInfo(s"Minio bucket: ${cfg.minio.bucket} started ✅")
     txns  <- minio.readAllTransactions(cfg.minio.bucket)
-    _     <- ZIO.logInfo(s"Found ${txns.size} transactions in bucket ${cfg.minio.bucket}")
+    _     <- ZIO.logInfo(s"Total Records = ${txns.size}")
     hermes <- ZIO.service[HermesService]
     enrichedTxns <- hermes.enrichBatch(txns)
-    _ <- ZIO.foreach(enrichedTxns)(f => ZIO.logInfo(s"${f}"))
-
+    _     <- ZIO.logInfo(s"Enriched & Scored Records = ${enrichedTxns.size}")
+    repo <- ZIO.service[SuspiciousTransactionRepository]
+    _ <- ZIO.foreach(enrichedTxns)(txn => repo.upsert(txn, 60))
+    _ <- ZIO.logInfo("ETL pipeline completed")
   } yield ()
 
-  override def run = program.provide(ConfigLoader.layer, MinioService.live, HermesService.live)
+  override def run = program.provide(ConfigLoader.layer, MinioService.live, HermesService.live, SuspiciousTransactionRepository.live)
 }
