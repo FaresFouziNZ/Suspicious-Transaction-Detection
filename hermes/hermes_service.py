@@ -72,7 +72,7 @@ def score(txn_id: str, amount_sar: float, category: str, timestamp: str):
 
 def calculate_suspicion_score(amount_sar: float, category: str, transaction_hour: int) -> int:
     score = 0
-    
+    category = category.lower()
     # Amount factor
     if amount_sar > 1000:
         score += 30
@@ -83,8 +83,8 @@ def calculate_suspicion_score(amount_sar: float, category: str, transaction_hour
 
     # Category factor
     very_risky_categories = ["unknown"]
-    risky_categories = ["Electronics", "Jewelry"]
-    medium_risk_categories = ["E-commerce"]
+    risky_categories = ["electronics", "jewelry"]
+    medium_risk_categories = ["e-commerce"]
     
     if category in very_risky_categories:
         score += 40
