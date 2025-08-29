@@ -49,7 +49,7 @@ services:
       MINIO_ACCESSKEY: minioadmin
       MINIO_SECRETKEY: minioadmin
       HERMES_URL: http://hermes:8000
-      POSTGRES_URL: jdbc:postgresql://localhost:5432/etl_db
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/etl_db
       POSTGRES_DATABASE: etl_db
       POSTGRES_USER: etl_user
       POSTGRES_PASSWORD: etl_password
