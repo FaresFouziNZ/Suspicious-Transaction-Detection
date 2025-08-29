@@ -23,7 +23,9 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-core" % "0.14.5",
       "io.circe" %% "circe-generic" % "0.14.5",
       "io.circe" %% "circe-parser" % "0.14.5",
-      "dev.zio" %% "zio-json" % "0.6.2"
+      "dev.zio" %% "zio-json" % "0.6.2",
+      "dev.zio" %% "zio-jdbc" % "0.1.1",
+      "org.postgresql" % "postgresql" % "42.7.3"
     ),
 
     Compile / mainClass := Some("etl.Main"),
