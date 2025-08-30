@@ -1,5 +1,6 @@
 package etl
 
+import etl.DatabaseClient
 import zio._
 import java.sql.{Connection, DriverManager, ResultSet, Timestamp}
 import java.time.Instant
@@ -13,17 +14,6 @@ object SuspiciousTransactionRepository {
 
   val live: ZLayer[Any, Nothing, SuspiciousTransactionRepository] =
     ZLayer.succeed(new SuspiciousTransactionRepository {
-      
-      private def getConnection: Task[Connection] =
-        ZIO.attempt {
-          Class.forName("org.postgresql.Driver")
-          DriverManager.getConnection(
-            sys.env.getOrElse("POSTGRES_URL", "jdbc:postgresql://postgres:5432/appdb"),
-            sys.env.getOrElse("POSTGRES_USER", "postgres"),
-            sys.env.getOrElse("POSTGRES_PASSWORD", "postgres")
-          )
-        }
-
       private def mapEnrichedToSuspicious(tx: EnrichedTransaction): SuspiciousTransaction =
         SuspiciousTransaction(
           txnId = tx.txn_id,
@@ -39,7 +29,7 @@ object SuspiciousTransactionRepository {
           checkNotes = None
         )
       private def shouldInsertOrUpdate(tx: SuspiciousTransaction, threshold: Double): Task[Boolean] =
-        getConnection.flatMap { conn =>
+        DatabaseClient.getConnection.flatMap { conn =>
           ZIO.attemptBlocking {
             val whitelistStmt = conn.prepareStatement(
               """
@@ -87,7 +77,7 @@ object SuspiciousTransactionRepository {
         shouldInsertOrUpdate(suspiciousTx, threshold).flatMap {
           case false => ZIO.unit
           case true =>
-            getConnection.flatMap { conn =>
+            DatabaseClient.getConnection.flatMap { conn =>
               ZIO.attemptBlocking {
                 val stmt = conn.prepareStatement(
                   """
