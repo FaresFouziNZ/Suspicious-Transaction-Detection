@@ -12,8 +12,16 @@ import io.circe.{Decoder, HCursor}
 trait MinioService {
   def listFiles(bucket: String): Task[List[String]]
   def readObject(path: String): Task[String]
-  def readAllTransactions(bucket: String): Task[List[Transaction]]
+  def readAllTransactions(bucket: String): Task[List[Transaction]] // Keep for backward compatibility
+  def processFile(fileName: String, bucket: String): Task[FileProcessingResult]
 }
+
+case class FileProcessingResult(
+  fileName: String,
+  transactions: List[Transaction],
+  isValid: Boolean,
+  errorMessage: Option[String] = None
+)
 
 object MinioService {
   val live: ZLayer[AppConfig, Throwable, MinioService] =
@@ -31,6 +39,7 @@ object MinioService {
               ListObjectsArgs.builder().bucket(bucket).recursive(true).build()
             ).iterator().asScala.toList.map(_.get().objectName())
           }
+        
         override def readObject(path: String): Task[String] =
           ZIO.attempt {
             val results = client.getObject(
@@ -38,32 +47,34 @@ object MinioService {
             )
             scala.io.Source.fromInputStream(results).mkString
           }
+
+        override def processFile(fileName: String, bucket: String): Task[FileProcessingResult] =
+          for {
+            stat <- getObjectStat(bucket, fileName)
+            already <- isAlreadyProcessed(fileName, stat.etag)
+            result <- if (already) {
+              ZIO.succeed(FileProcessingResult(fileName, Nil, isValid = false, Some("File already processed with same etag")))
+            } else if (!isValidExtension(fileName)) {
+              ZIO.succeed(FileProcessingResult(fileName, Nil, isValid = false, Some("Invalid file extension")))
+            } else {
+              (for {
+                content <- readObject(fileName)
+                txs <- ZIO
+                  .attempt(parseFile(fileName, content))
+                  .tapError(e => ZIO.logError(s"Corrupted file $fileName: ${e.getMessage}"))
+                  .orElseSucceed(Nil)
+                _ <- if (txs.nonEmpty) markProcessed(fileName, stat.etag) else ZIO.unit
+              } yield FileProcessingResult(fileName, txs, isValid = true))
+                .catchAll(e => ZIO.succeed(FileProcessingResult(fileName, Nil, isValid = false, Some(e.getMessage))))
+            }
+          } yield result
+
         override def readAllTransactions(bucket: String): Task[List[Transaction]] =
           for {
-            files    <- listFiles(bucket)
-            grouped  = files.groupBy(_.split("/").headOption.getOrElse("unknown"))
-            results  <- ZIO.foreach(grouped.toList) { case (_, bankFiles) =>
-                          ZIO.foreach(bankFiles) { file =>
-                            for {
-                              stat    <- getObjectStat(bucket, file)
-                              already <- isAlreadyProcessed(file, stat.etag)
-                              res     <- if (already) {
-                                            ZIO.logInfo(s"Skipping file $file (already processed with same etag)").as(List.empty[Transaction])
-                                          } else if (!isValidExtension(file)) {
-                                            ZIO.logWarning(s"Skipping file $file (invalid extension)").as(List.empty[Transaction])
-                                          } else {
-                                            (for {
-                                              content <- readObject(file)
-                                              txs     <- ZIO
-                                                          .attempt(parseFile(file, content))
-                                                          .tapError(e => ZIO.logError(s"Corrupted file $file: ${e.getMessage}"))
-                                                          .orElseSucceed(Nil)
-                                              _       <- if (txs.nonEmpty) markProcessed(file, stat.etag) else ZIO.unit
-                                            } yield txs)
-                                          }
-                            } yield res
-                          }.map(_.flatten)
-                        }
+            files <- listFiles(bucket)
+            results <- ZIO.foreach(files) { file =>
+              processFile(file, bucket).map(_.transactions)
+            }
           } yield results.flatten
         
         // --- New helper ---

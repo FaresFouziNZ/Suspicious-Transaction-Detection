@@ -41,6 +41,31 @@ case class SuspiciousTransaction(
 
 case class ObjectStat(etag: String)
 
+// ===== Audit Logging Models =====
+case class FileProcessingAudit(
+  fileName: String,
+  totalRecords: Int,
+  validRecords: Int,
+  invalidRecords: Int,
+  invalidReasons: List[String],
+  enrichedRecords: Int,
+  scoredRecords: Int,
+  insertedToReview: Int,
+  processingStartTime: Instant,
+  processingEndTime: Instant,
+  status: ProcessingStatus
+)
+
+sealed trait ProcessingStatus
+case object ProcessingSuccess extends ProcessingStatus
+case object ProcessingFailed extends ProcessingStatus
+
+case class ProcessingError(
+  fileName: String,
+  error: String,
+  timestamp: Instant
+)
+
 // ===== Hermes Service Models =====
 case class EnrichResponse(status: String, data: EnrichData)
 case class EnrichData(txn_id: String, amount_sar: Double, category: String)
