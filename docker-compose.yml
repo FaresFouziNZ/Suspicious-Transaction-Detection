@@ -36,13 +36,21 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etl_user -d etl_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   etl-pipeline:
     build: ./etl-pipeline
     depends_on:
-      - minio
-      - hermes
-      - postgres
+      minio:
+        condition: service_started
+      hermes:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     environment:
       MINIO_ENDPOINT: http://minio:9000
       MINIO_BUCKET: transactions
