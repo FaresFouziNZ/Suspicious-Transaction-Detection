@@ -1,5 +1,6 @@
 package etl
 
+import etl.DatabaseClient
 import io.minio._
 import io.minio.messages.Item
 import scala.jdk.CollectionConverters._
@@ -43,10 +44,39 @@ object MinioService {
             grouped  = files.groupBy(_.split("/").headOption.getOrElse("unknown"))
             results  <- ZIO.foreach(grouped.toList) { case (_, bankFiles) =>
                           ZIO.foreach(bankFiles) { file =>
-                            readObject(file).map(content => parseFile(file, content))
+                            for {
+                              stat    <- getObjectStat(bucket, file)
+                              already <- isAlreadyProcessed(file, stat.etag)
+                              res     <- if (already) {
+                                            ZIO.logInfo(s"Skipping file $file (already processed with same etag)").as(List.empty[Transaction])
+                                          } else if (!isValidExtension(file)) {
+                                            ZIO.logWarning(s"Skipping file $file (invalid extension)").as(List.empty[Transaction])
+                                          } else {
+                                            (for {
+                                              content <- readObject(file)
+                                              txs     <- ZIO
+                                                          .attempt(parseFile(file, content))
+                                                          .tapError(e => ZIO.logError(s"Corrupted file $file: ${e.getMessage}"))
+                                                          .orElseSucceed(Nil)
+                                              _       <- if (txs.nonEmpty) markProcessed(file, stat.etag) else ZIO.unit
+                                            } yield txs)
+                                          }
+                            } yield res
                           }.map(_.flatten)
                         }
           } yield results.flatten
+        
+        // --- New helper ---
+        private def getObjectStat(bucket: String, file: String): Task[ObjectStat] =
+          ZIO.attempt {
+            val stat = client.statObject(
+              StatObjectArgs.builder().bucket(bucket).`object`(file).build()
+            )
+            ObjectStat(stat.etag())
+          }
+        
+        private def isValidExtension(fileName: String): Boolean =
+          fileName.endsWith(".json") || fileName.endsWith(".csv")
 
         private def parseFile(fileName: String, content: String): List[Transaction] = {
           if (fileName.endsWith(".json")) {
@@ -112,7 +142,33 @@ object MinioService {
               }
             }
           }
-          
+
+          private def isAlreadyProcessed(fileName: String, etag: String): Task[Boolean] =
+            DatabaseClient.getConnection.flatMap { conn =>
+              ZIO.attemptBlocking {
+                val stmt = conn.prepareStatement(
+                  "SELECT 1 FROM processed_files WHERE file_name = ? AND etag = ?"
+                )
+                stmt.setString(1, fileName)
+                stmt.setString(2, etag)
+                val rs = stmt.executeQuery()
+                rs.next()
+              }.ensuring(ZIO.attemptBlocking(conn.close()).orDie)
+            }
+
+          private def markProcessed(fileName: String, etag: String): Task[Unit] =
+            DatabaseClient.getConnection.flatMap { conn =>
+              ZIO.attemptBlocking {
+                val stmt = conn.prepareStatement(
+                  "INSERT INTO processed_files (file_name, etag) VALUES (?, ?) " +
+                  "ON CONFLICT (file_name) DO UPDATE SET etag = EXCLUDED.etag"
+                )
+                stmt.setString(1, fileName)
+                stmt.setString(2, etag)
+                stmt.executeUpdate()
+                ()
+              }.ensuring(ZIO.attemptBlocking(conn.close()).orDie)
+            }
       }
     }
 }
