@@ -39,6 +39,8 @@ case class SuspiciousTransaction(
   checkNotes: Option[String] = None
 )
 
+case class ObjectStat(etag: String)
+
 // ===== Hermes Service Models =====
 case class EnrichResponse(status: String, data: EnrichData)
 case class EnrichData(txn_id: String, amount_sar: Double, category: String)
