@@ -1,3 +1,10 @@
+CREATE TABLE processed_files (
+    file_name VARCHAR(512) PRIMARY KEY,
+    processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    etag TEXT NOT NULL
+);
+
+
 CREATE TABLE IF NOT EXISTS suspicious_transactions (
     txn_id VARCHAR(100) PRIMARY KEY,
     user_id VARCHAR(100) NOT NULL,
