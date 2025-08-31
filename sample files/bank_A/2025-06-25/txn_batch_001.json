@@ -1,0 +1,42 @@
+[
+  {
+    "txn_id": "TXN1000",
+    "user_id": "U585",
+    "amount": 616.7,
+    "currency": "EUR",
+    "timestamp": "2025-08-29T01:36:32Z",
+    "merchant": "Apple Store"
+  },
+  {
+    "txn_id": "TXN1001",
+    "user_id": "U167",
+    "amount": 260.81,
+    "currency": "GBP",
+    "timestamp": "2025-08-29T01:36:32Z",
+    "merchant": "Amazon"
+  },
+  {
+    "txn_id": "TXN1002",
+    "user_id": "U422",
+    "amount": 415.39,
+    "currency": "GBP",
+    "timestamp": "2025-08-29T01:36:32Z",
+    "merchant": "Walmart"
+  },
+  {
+    "txn_id": "TXN1003",
+    "user_id": "U451",
+    "amount": 28.16,
+    "currency": "GBP",
+    "timestamp": "2025-08-29T01:36:32Z",
+    "merchant": "Noon"
+  },
+  {
+    "txn_id": "TXN1004",
+    "user_id": "U575",
+    "amount": 637.59,
+    "currency": "USD",
+    "timestamp": "2025-08-29T01:36:32Z",
+    "merchant": "Carrefour"
+  }
+]
