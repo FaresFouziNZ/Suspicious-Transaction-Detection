@@ -16,11 +16,7 @@ The system consists of four main components:
 - **PostgreSQL** - Relational database for storing processed transactions and audit logs
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   MinIO     │    │    ETL      │    │   Hermes    │    │ PostgreSQL  │
-│  Storage    │───▶│  Pipeline   │───▶│   Service   │───▶│  Database   │
-│             │    │             │    │             │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+MinIO Storage > ETL Pipeline > Hermes Service > PostgreSQL Database
 ```
 
 ## ✨ Features
@@ -213,28 +209,10 @@ All services include health checks:
 - **Hermes**: FastAPI built-in health monitoring
 - **ETL Pipeline**: Comprehensive logging and audit trails
 
-## 🔒 Security Considerations
 
-- **Database**: Uses dedicated user accounts with limited permissions
-- **MinIO**: Configurable access keys and bucket policies
-- **Network**: Services communicate over internal Docker network
-- **Environment Variables**: Sensitive configuration stored in environment
+## 🤝 MinIO Sample Files
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-
-## 🆘 Support
-
-For questions and support:
-- Create an issue in the GitHub repository
-- Check the service logs: `docker-compose logs [service-name]`
-- Review the API documentation at http://localhost:8000/docs
+Sample Files are available in  "Sample Files" folder in addition to a data generation code.
 
 
 ---
