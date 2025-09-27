@@ -23,6 +23,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5 &&
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+      mc mb --ignore-existing local/${MINIO_BUCKET}
+      "
   postgres:
     image: postgres:16
     container_name: postgres
@@ -46,6 +59,8 @@ services:
     build: ./etl-pipeline
     depends_on:
       minio:
+        condition: service_started
+      minio-setup:
         condition: service_started
       hermes:
         condition: service_started
